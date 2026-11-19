@@ -1,1 +1,214 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
 
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum FamilyRole {
+  OWNER
+  MEMBER
+}
+
+enum ChallengeEntryType {
+  TEXT
+  PHOTO
+  PREDICTION
+}
+
+enum AlbumItemType {
+  CHALLENGE
+  PHOTO
+  NOTE
+  MILESTONE
+}
+
+// ─── NextAuth ────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?
+
+  accounts          Account[]
+  sessions          Session[]
+  familyMemberships FamilyMember[]
+  challengeEntries  ChallengeEntry[]
+  sleepEntries      SleepEntry[]
+  albumItems        AlbumItem[]      @relation("AlbumItemCreator")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─── Gezinsruimte ────────────────────────────────────────
+
+model Family {
+  id         String  @id @default(cuid())
+  name       String?
+  inviteCode String  @unique
+
+  members       FamilyMember[]
+  challenges    Challenge[]
+  sleepEntries  SleepEntry[]
+  growthEntries GrowthEntry[]
+  albumItems    AlbumItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FamilyMember {
+  userId   String
+  familyId String
+  role     FamilyRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, familyId])
+  @@index([familyId])
+}
+
+// ─── Challenges ──────────────────────────────────────────
+
+model Challenge {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  isActive    Boolean @default(true)
+  familyId    String?
+
+  family  Family?          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  entries ChallengeEntry[]
+
+  createdAt DateTime @default(now())
+
+  @@index([familyId, isActive])
+}
+
+model ChallengeEntry {
+  id          String             @id @default(cuid())
+  challengeId String
+  userId      String
+  entryType   ChallengeEntryType
+  text        String?
+  photoUrl    String?
+  completedAt DateTime           @default(now())
+
+  challenge Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  albumItem AlbumItem?
+
+  @@index([userId, completedAt])
+  @@index([challengeId])
+}
+
+// ─── Logboeken ───────────────────────────────────────────
+
+model SleepEntry {
+  id       String   @id @default(cuid())
+  familyId String
+  userId   String
+  date     DateTime
+  hours    Float?
+  note     String?
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([familyId, date])
+  @@index([userId])
+}
+
+model GrowthEntry {
+  id       String   @id @default(cuid())
+  familyId String
+  date     DateTime
+  heightCm Float?
+  weightKg Float?
+  note     String?
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([familyId, date])
+}
+
+// ─── Mini-album ──────────────────────────────────────────
+
+model AlbumItem {
+  id               String        @id @default(cuid())
+  familyId         String
+  createdById      String
+  type             AlbumItemType
+  title            String?
+  text             String?
+  photoUrl         String?
+  occurredAt       DateTime      @default(now())
+  challengeEntryId String?       @unique
+
+  family         Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdBy      User            @relation("AlbumItemCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  challengeEntry ChallengeEntry? @relation(fields: [challengeEntryId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([familyId, occurredAt])
+  @@index([createdById])
+}
