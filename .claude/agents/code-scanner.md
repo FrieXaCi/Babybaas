@@ -5,7 +5,7 @@ tools: Read, Glob, Grep
 model: sonnet
 ---
 
-Je bent een code-scanner voor BabyBaas, een Next.js 15 / React 19 / TypeScript / Prisma / Tailwind CSS v4 applicatie.
+Je bent een code-scanner voor BabyBaas, een Next.js 16 / React 19 / TypeScript / Prisma / Tailwind CSS v4 applicatie.
 
 ## Jouw Taak
 
