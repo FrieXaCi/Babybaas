@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
+import { SearchInput } from "./SearchInput";
 
 export function TopBar() {
   return (
@@ -14,18 +14,7 @@ export function TopBar() {
         <Logo />
       </Link>
 
-      <div className="relative hidden max-w-md flex-1 sm:block">
-        <Search
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
-          type="search"
-          placeholder="Zoek in jullie momenten..."
-          aria-label="Zoeken"
-          className="h-10 rounded-full border-2 bg-paper pl-9 shadow-retro-sm"
-        />
-      </div>
+      <SearchInput className="hidden max-w-md flex-1 sm:block" />
 
       <div className="flex-1 sm:hidden" />
 
