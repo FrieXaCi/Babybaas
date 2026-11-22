@@ -4,7 +4,13 @@
 
 Maak een seed script (`prisma/seed.ts`) om de database te vullen met voorbeelddata voor ontwikkeling en demo's binnen het BabyBaas platform. De data volgt het datamodel in `prisma/schema.prisma`.
 
-Het script is idempotent: bij elke run worden de bestaande demo-gegevens eerst verwijderd en daarna opnieuw aangemaakt. Datums worden relatief aan "nu" berekend, zodat de demo altijd actueel oogt.
+Het script is idempotent: bij elke run worden de demo-gebruikers en het demo-gezin (met hun gegevens) eerst verwijderd en daarna opnieuw aangemaakt. De algemene challenges worden nooit verwijderd maar aangemaakt of bijgewerkt, omdat inzendingen van andere gezinnen eraan kunnen hangen. Datums worden relatief aan "nu" berekend, zodat de demo altijd actueel oogt.
+
+### Veiligheid
+
+- Het script weigert te draaien als `NODE_ENV` `production` is.
+- Het script weigert te draaien als de database andere gebruikers bevat dan de demo-accounts. Bewust overschrijven kan met `SEED_FORCE=true`.
+- Het wachtwoord wordt niet gelogd.
 
 ## Vereisten
 

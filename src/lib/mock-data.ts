@@ -1,42 +1,12 @@
-import {
-  Baby,
-  Camera,
-  Heart,
-  Images,
-  Moon,
-  NotebookPen,
-  Ruler,
-  Smile,
-  Star,
-  Trophy,
-} from "lucide-react";
+import { Baby, Camera, Images, Moon, Ruler, Smile } from "lucide-react";
 import type {
-  CategoryFilter,
   CollectionItem,
-  ContentCategory,
   ContentItem,
-  ContentStatus,
   DashboardUser,
-  NavigationItem,
 } from "@/types/dashboard";
 
 // Tijdelijke mock-data tot authenticatie en echte data zijn aangesloten.
-
-export const MAIN_NAVIGATION: NavigationItem[] = [
-  {
-    id: "challenges",
-    label: "Challenges",
-    href: "/dashboard/challenges",
-    icon: Heart,
-  },
-  {
-    id: "logboek",
-    label: "Logboek",
-    href: "/dashboard/logboek",
-    icon: NotebookPen,
-  },
-  { id: "album", label: "Album", href: "/dashboard/album", icon: Images },
-];
+// Vaste instellingen staan in `content-categories.ts` en `navigation.ts`.
 
 export const FAVORITE_ITEMS: CollectionItem[] = [
   {
@@ -92,25 +62,6 @@ export const MOCK_USER: DashboardUser = {
 };
 
 // Tijdelijke content voor het overzicht tot de database is aangesloten.
-
-export const CATEGORY_FILTERS: CategoryFilter[] = [
-  { id: "challenge", label: "Challenges", icon: Trophy, activeClassName: "bg-orange" },
-  { id: "photo", label: "Foto's", icon: Camera, activeClassName: "bg-yellow" },
-  { id: "note", label: "Notities", icon: NotebookPen, activeClassName: "bg-teal" },
-  { id: "milestone", label: "Mijlpalen", icon: Star, activeClassName: "bg-yellow" },
-  { id: "sleep", label: "Slaap", icon: Moon, activeClassName: "bg-teal" },
-  { id: "growth", label: "Groei", icon: Ruler, activeClassName: "bg-orange" },
-];
-
-export const CATEGORY_BY_ID = Object.fromEntries(
-  CATEGORY_FILTERS.map((category) => [category.id, category]),
-) as Record<ContentCategory, CategoryFilter>;
-
-export const STATUS_LABELS: Record<ContentStatus, string> = {
-  new: "Nieuw",
-  in_progress: "Bezig",
-  done: "Voltooid",
-};
 
 export const CONTENT_ITEMS: ContentItem[] = [
   {

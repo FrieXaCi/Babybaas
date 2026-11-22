@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { Check, X } from "lucide-react";
-import { CATEGORY_FILTERS } from "@/lib/mock-data";
+import { CATEGORY_FILTERS } from "@/lib/content-categories";
 import { cn } from "@/lib/utils";
 import type { CategoryFilter } from "@/types/dashboard";
 import { useDashboardFilters } from "./DashboardFilters";

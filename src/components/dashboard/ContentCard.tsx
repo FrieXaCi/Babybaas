@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
-import { CATEGORY_BY_ID, STATUS_LABELS } from "@/lib/mock-data";
+import { CATEGORY_BY_ID, STATUS_LABELS } from "@/lib/content-categories";
 import { cn } from "@/lib/utils";
 import type { ContentItem, ContentStatus } from "@/types/dashboard";
 
