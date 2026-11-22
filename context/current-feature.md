@@ -1,24 +1,68 @@
 # Huidige feature
 
-<!-- Naam van de feature -->
+Homepage & Authenticatie Setup (Fase 1)
 
 ## Status
 
 <!-- Niet gestart | In uitvoering | Voltooid -->
 
-Niet gestart
+In uitvoering
 
 ## Doelen
 
-<!-- Doelen en vereisten -->
+Specificatie: `context/features/homepage.md`. De publieke homepage van BabyBaas, met een uitnodigende soft-play uitstraling die ouders direct aanspreekt, een duidelijke waardepropositie en navigatie naar de login- en registratieflow.
+
+- **Hero-afbeelding:**
+  - eerst een prompt voor een AI image generator opstellen en de afbeelding laten goedkeuren voordat de code wordt geschreven;
+  - opslaan als `public/images/hero-babybaas.png`.
+- **Hero-sectie in `src/app/page.tsx`:**
+  - titel: "BabyBaas: Alles over jouw kleintje op één veilige plek.";
+  - subtitel: "Leg elk kostbaar moment vast, houd slaap en groei bij, en deel de mijlpalen van je baby veilig met de mensen die je liefhebt." (aangepast: geen voeding);
+  - twee knoppen: `Aanmelden` (primair, naar `/auth/register`) en `Inloggen` (secundair/outline, naar `/auth/login`).
+- **Features-grid:**
+  - **Groeidagboek:** mijlpalen vastleggen met foto's en verhalen;
+  - **Slaap & Groei:** slaap en groei bijhouden voor meer rust en overzicht (aangepast: geen voeding);
+  - **Veilig Delen:** jij bepaalt wie er meekijkt; geen social media, maar een privé gezinshub.
+- **Styling:**
+  - de soft-play thema-tokens uit `src/app/globals.css`;
+  - mobile-first: knoppen onder elkaar op mobiel, naast elkaar op desktop;
+  - `next/image` voor de hero met de juiste aspect ratio.
+- **Componenten:** bestaande UI-componenten (zoals `Button`) gebruiken, of nieuwe maken in `src/components/ui/` in BabyBaas-stijl.
+- **Validatie:** de code-scanner op de nieuwe pagina laten draaien.
 
 ## Todo
 
-<!-- checklist van de implementatiestappen -->
+- [x] Prompt voor de hero-afbeelding opstellen
+- [x] Hero-afbeelding laten genereren en goedkeuren; opslaan als `public/images/hero-babybaas.png`
+- [x] Hero-sectie met titel, subtitel en CTA-knoppen (`/auth/register`, `/auth/login`)
+- [x] Features-grid met drie kaarten
+- [x] Responsive: knoppen onder elkaar op mobiel, naast elkaar op desktop
+- [x] Metadata (titel en beschrijving) van de homepage bijwerken
+- [x] Controleren op mobiel en desktop; lint, typecheck, tests en build draaien
+- [x] Code-scanner draaien op de nieuwe pagina en bevindingen oplossen
 
 ## Notities
 
-<!-- Eventuele aanvullende opmerkingen -->
+- **Geen eigen beeldgenerator:** Claude kan zelf geen afbeeldingen genereren. Claude levert de prompt; de gebruiker genereert de afbeelding en zet die in `public/images/`.
+- **"Soft-play kleuren":** de spec verwijst naar `coding-standards.md`, maar de kleuren staan in `src/app/globals.css` (`ink`, `cream`, `paper`, `orange`, `teal`, `teal-deep`, `yellow`).
+- **Besluit: stijl van de hero:** retro BabyBaas, dus dezelfde jaren-60 cartoonstijl met dikke lijnen als `welkom.png` en `moment-*.png`, met de rustige, veilige sfeer uit de spec. Dit wijkt bewust af van de pastel/3D-richtlijn in de spec.
+- **Besluit: geen "voeding":** een voedingslogboek zit niet in de MVP (alleen slaap en groei). De subtitel wordt "...houd slaap en groei bij..." en de feature heet "Slaap & Groei".
+- **Besluit: volgorde:** de pagina wordt pas gebouwd nadat de gebruiker `hero-babybaas.png` heeft aangeleverd en goedgekeurd (volgens de spec).
+- **Auth-routes:** `/auth/register` en `/auth/login` bestaan nog niet. In deze fase leiden de knoppen daar alleen naartoe.
+- **Code-scanner:** de spec noemt `code-scanner-babybaas-nl`; de agent in het project heet `code-scanner`.
+- **Implementatie:**
+  - `src/app/page.tsx` (Server Component) met een gele header met logo, `Hero` en `FeatureGrid` (in `src/components/home/`) en een footer met de disclaimer dat BabyBaas geen medisch advies geeft.
+  - De hero-afbeelding is vierkant (1024×1024); `next/image` met statische import, `placeholder="blur"`, `loading="eager"` en `fetchPriority="high"` (LCP).
+  - De CTA's zijn `Link`s met `buttonVariants`. Nieuw in `button.tsx`: de varianten `retro` en `retro-outline` en de maat `xl`, herbruikbaar voor de auth-pagina's.
+- **Na de code-scanner opgelost:**
+  - focusring van de retro-knoppen in `ink` met een crème offset (een oranje ring was onzichtbaar op de oranje knop);
+  - de "indruk" bij klikken overschrijft de basis-translate betrouwbaar, met `motion-reduce`-varianten;
+  - extra text-shadow op "BabyBaas:" voor contrast;
+  - geen hover-effect op de niet-klikbare feature-kaarten;
+  - nauwkeuriger `sizes` voor de hero.
+- **Bewust niet aangepast:**
+  - de relatieve import van de hero (`@/` wijst naar `src/`, de afbeelding staat in `public/`);
+  - het contrast van het logo (tekst die deel uitmaakt van een logo is uitgezonderd van WCAG-contrasteisen).
 
 ## Geschiedenis
 
