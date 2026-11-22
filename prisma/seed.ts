@@ -72,14 +72,37 @@ function placeholderPhoto(text: string): string {
   return `https://placehold.co/800x600/fde68a/78350f?text=${encodeURIComponent(text)}`;
 }
 
+const DEMO_EMAILS = Object.values(DEMO_USERS).map((u) => u.email);
+
+/**
+ * Voorkomt dat de seed tegen een productie- of gedeelde database draait.
+ * Overschrijven kan bewust met SEED_FORCE=true.
+ */
+async function assertSafeToSeed() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Seed geweigerd: NODE_ENV is 'production'.");
+  }
+  if (process.env.SEED_FORCE === "true") return;
+
+  const otherUsers = await prisma.user.count({
+    where: { email: { notIn: DEMO_EMAILS } },
+  });
+  if (otherUsers > 0) {
+    throw new Error(
+      `Seed geweigerd: de database bevat ${otherUsers} niet-demo gebruiker(s). ` +
+        "Gebruik een ontwikkeldatabase, of zet SEED_FORCE=true als je dit bewust wilt.",
+    );
+  }
+}
+
+/**
+ * Verwijdert alleen de demo-gebruikers en het demo-gezin. Hun inzendingen,
+ * logs en albumitems gaan via de cascade-regels mee. Algemene challenges
+ * worden nooit verwijderd, omdat inzendingen van andere gezinnen eraan hangen.
+ */
 async function clearDemoData() {
-  await prisma.user.deleteMany({
-    where: { email: { in: Object.values(DEMO_USERS).map((u) => u.email) } },
-  });
+  await prisma.user.deleteMany({ where: { email: { in: DEMO_EMAILS } } });
   await prisma.family.deleteMany({ where: { inviteCode: DEMO_INVITE_CODE } });
-  await prisma.challenge.deleteMany({
-    where: { familyId: null, title: { in: CHALLENGES.map((c) => c.title) } },
-  });
 }
 
 async function seedUsersAndFamily(): Promise<DemoContext> {
@@ -109,11 +132,21 @@ async function seedUsersAndFamily(): Promise<DemoContext> {
   return { familyId: family.id, ownerId: owner.id, partnerId: partner.id };
 }
 
+/** Maakt de algemene challenges aan of werkt ze bij (op titel, `familyId: null`). */
 async function seedChallenges(): Promise<Map<ChallengeTitle, string>> {
   const ids = new Map<ChallengeTitle, string>();
   for (const challenge of CHALLENGES) {
-    const created = await prisma.challenge.create({ data: { ...challenge } });
-    ids.set(challenge.title, created.id);
+    const existing = await prisma.challenge.findFirst({
+      where: { familyId: null, title: challenge.title },
+      select: { id: true },
+    });
+    const saved = existing
+      ? await prisma.challenge.update({
+          where: { id: existing.id },
+          data: { description: challenge.description, isActive: true },
+        })
+      : await prisma.challenge.create({ data: { ...challenge } });
+    ids.set(challenge.title, saved.id);
   }
   return ids;
 }
@@ -267,6 +300,8 @@ async function seedAlbumItems(ctx: DemoContext) {
 }
 
 async function main() {
+  await assertSafeToSeed();
+
   console.log("Demo-data opruimen...");
   await clearDemoData();
 
@@ -274,7 +309,7 @@ async function main() {
   console.log("Gebruikers en gezinsruimte aangemaakt");
 
   const challengeIds = await seedChallenges();
-  console.log(`${challengeIds.size} challenges aangemaakt`);
+  console.log(`${challengeIds.size} challenges aangemaakt of bijgewerkt`);
 
   const entryCount = await seedChallengeEntries(ctx, challengeIds);
   console.log(`${entryCount} challenge-inzendingen aangemaakt (met albumitem)`);
@@ -283,7 +318,8 @@ async function main() {
   console.log(`${await seedGrowthEntries(ctx)} groei-invoeren aangemaakt`);
   console.log(`${await seedAlbumItems(ctx)} losse albumitems aangemaakt`);
 
-  console.log(`Klaar. Inloggen met ${DEMO_USERS.owner.email} / ${DEMO_PASSWORD}`);
+  // Het wachtwoord staat in context/features/seed-data-spec.md, niet in de logs.
+  console.log(`Klaar. Demo-account: ${DEMO_USERS.owner.email}`);
 }
 
 main()

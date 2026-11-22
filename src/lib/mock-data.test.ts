@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   CATEGORY_BY_ID,
   CATEGORY_FILTERS,
-  CONTENT_ITEMS,
-  FAVORITE_ITEMS,
-  MAIN_NAVIGATION,
-  RECENT_ITEMS,
   STATUS_LABELS,
-} from "./mock-data";
+} from "./content-categories";
+import { CONTENT_ITEMS, FAVORITE_ITEMS, RECENT_ITEMS } from "./mock-data";
+import { MAIN_NAVIGATION } from "./navigation";
 
 // De UI gaat ervan uit dat de mock-data consistent is (unieke keys,
 // bestaande categorieën, geldige datums, links naar bestaande routes).

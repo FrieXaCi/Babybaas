@@ -33,7 +33,8 @@ export function DashboardFiltersProvider({ children }: { children: ReactNode }) 
   const [query, setQuery] = useState("");
   const [categories, setCategories] = useState<ContentCategory[]>([]);
   const debouncedQuery = useDebounce(query, SEARCH_DEBOUNCE_MS);
-  const searchQuery = query.trim() === "" ? "" : debouncedQuery;
+  // Wissen werkt direct; typen wordt gedebounced. Eén keer genormaliseerd.
+  const searchQuery = query.trim() === "" ? "" : debouncedQuery.trim();
 
   const toggleCategory = useCallback((category: ContentCategory) => {
     setCategories((current) =>
@@ -56,7 +57,7 @@ export function DashboardFiltersProvider({ children }: { children: ReactNode }) 
       categories,
       toggleCategory,
       clearFilters,
-      hasActiveFilters: searchQuery.trim() !== "" || categories.length > 0,
+      hasActiveFilters: searchQuery !== "" || categories.length > 0,
     }),
     [query, searchQuery, categories, toggleCategory, clearFilters],
   );

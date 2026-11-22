@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MAIN_NAVIGATION } from "@/lib/mock-data";
-import { isActiveRoute } from "@/lib/navigation";
+import { MAIN_NAVIGATION, isActiveRoute } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
