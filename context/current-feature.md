@@ -1,24 +1,34 @@
 # Huidige feature
 
-<!-- Naam van de feature -->
+Seed mock-data
 
 ## Status
 
 <!-- Niet gestart | In uitvoering | Voltooid -->
 
-Niet gestart
+In uitvoering
 
 ## Doelen
 
-<!-- Doelen en vereisten -->
+- Een seed script in `prisma/seed.ts` dat de database vult met demo-data voor ontwikkeling en demo's.
+- Specificaties volgen `context/features/seed-data-spec.md`; structuur volgt `prisma/schema.prisma`.
+- Demo-gebruiker `demo@babybaas.nl` (wachtwoord `12345678`, bcryptjs 12 rondes) en een partner in de gezinsruimte "Familie Demo".
+- De zes vaste MVP-challenges, challenge-inzendingen, slaap- en groeilogs en albumitems.
+- Het script is idempotent: opnieuw draaien geeft dezelfde dataset zonder duplicaten.
 
 ## Todo
 
-<!-- checklist van de implementatiestappen -->
+- [x] Seed-spec omzetten naar het BabyBaas-datamodel
+- [x] `bcryptjs` en `tsx` installeren
+- [x] Seed-commando instellen in `prisma.config.ts` en `npm run db:seed` toevoegen
+- [x] `prisma/seed.ts` schrijven
+- [x] Seed uitvoeren tegen de Neon ontwikkel-branch en de data controleren
 
 ## Notities
 
-<!-- Eventuele aanvullende opmerkingen -->
+- De oorspronkelijke spec beschreef een ander project (snippets, collecties, `isPro`). Die is herschreven voor BabyBaas.
+- Foto's gebruiken placeholder-URL's van placehold.co, omdat R2 nog niet is ingericht.
+- Het script verwijdert eerst de demo-gebruikers, de demo-gezinsruimte (via `inviteCode`) en de algemene challenges met dezelfde titels; cascade-regels ruimen gekoppelde data op.
 
 ## Geschiedenis
 
