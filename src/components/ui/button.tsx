@@ -17,6 +17,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        // BabyBaas soft-play: dikke rand en harde schaduw die "indrukt" bij klikken.
+        // Focus: volle ink-ring (oranje ring zou op de oranje knop onzichtbaar zijn).
+        retro:
+          "border-2 border-ink bg-orange font-bold text-ink shadow-retro hover:-translate-y-0.5 hover:shadow-retro-lg focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:not-aria-[haspopup]:translate-y-0.5 active:shadow-retro-sm motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:not-aria-[haspopup]:translate-y-0",
+        "retro-outline":
+          "border-2 border-ink bg-paper font-bold text-ink shadow-retro hover:-translate-y-0.5 hover:bg-cream hover:shadow-retro-lg focus-visible:border-ink focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cream active:not-aria-[haspopup]:translate-y-0.5 active:shadow-retro-sm motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:not-aria-[haspopup]:translate-y-0",
       },
       size: {
         default:
@@ -24,6 +30,7 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        xl: "h-12 gap-2 rounded-full px-7 text-base [&_svg:not([class*='size-'])]:size-5",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
