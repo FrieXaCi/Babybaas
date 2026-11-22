@@ -1,12 +1,18 @@
+import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "./Logo";
+import { MobileNav } from "./MobileNav";
 
 export function TopBar() {
   return (
     <header className="flex items-center gap-3 border-b-4 border-ink bg-yellow px-4 py-3 md:px-6">
-      <Logo />
+      <MobileNav />
+
+      <Link href="/dashboard" aria-label="Naar het overzicht">
+        <Logo />
+      </Link>
 
       <div className="relative hidden max-w-md flex-1 sm:block">
         <Search

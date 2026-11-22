@@ -1,34 +1,40 @@
-import { Heart, Images, NotebookPen, type LucideIcon } from "lucide-react";
+"use client";
 
-type BottomNavItem = {
-  label: string;
-  icon: LucideIcon;
-};
-
-const BOTTOM_NAV_ITEMS: BottomNavItem[] = [
-  { label: "Challenges", icon: Heart },
-  { label: "Logboek", icon: NotebookPen },
-  { label: "Album", icon: Images },
-];
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { MAIN_NAVIGATION } from "@/lib/mock-data";
+import { isActiveRoute } from "@/lib/navigation";
+import { cn } from "@/lib/utils";
 
 export function BottomNav() {
+  const pathname = usePathname();
+
   return (
     <nav
       aria-label="Snelle acties"
       className="border-t-4 border-ink bg-teal pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <ul className="grid grid-cols-3">
-        {BOTTOM_NAV_ITEMS.map(({ label, icon: Icon }) => (
-          <li key={label}>
-            <button
-              type="button"
-              className="flex w-full flex-col items-center gap-1 py-3 text-sm font-bold text-ink transition-colors hover:bg-paper/30"
-            >
-              <Icon aria-hidden className="size-6" />
-              {label}
-            </button>
-          </li>
-        ))}
+      <ul className="grid grid-cols-3 gap-2 px-3 py-2">
+        {MAIN_NAVIGATION.map(({ id, label, href, icon: Icon }) => {
+          const active = isActiveRoute(pathname, href);
+          return (
+            <li key={id}>
+              <Link
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 rounded-full border-2 py-1.5 text-sm font-bold text-ink transition-colors",
+                  active
+                    ? "border-ink bg-yellow shadow-retro-sm"
+                    : "border-transparent hover:bg-paper/30",
+                )}
+              >
+                <Icon aria-hidden className="size-5" />
+                {label}
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
