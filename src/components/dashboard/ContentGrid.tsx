@@ -11,6 +11,9 @@ import type { ContentItem } from "@/types/dashboard";
 import { ContentCard } from "./ContentCard";
 import { useDashboardFilters } from "./DashboardFilters";
 
+/** Kaarten in de eerste twee rijen laden hun afbeelding direct (LCP). */
+const EAGER_IMAGE_COUNT = 6;
+
 function openItem(item: ContentItem) {
   // Placeholder tot er een detailpagina is; alleen zichtbaar tijdens ontwikkeling.
   if (process.env.NODE_ENV !== "production") {
@@ -38,7 +41,7 @@ export function ContentGrid() {
       ) : (
         <motion.ul layout className="relative grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout" initial={false}>
-            {items.map((item) => {
+            {items.map((item, index) => {
               const favorite = isFavorite(item.id, item.isFavorite);
               return (
                 <motion.li
@@ -54,6 +57,7 @@ export function ContentGrid() {
                     isFavorite={favorite}
                     onToggleFavorite={() => setFavorite(item.id, !favorite)}
                     onOpen={() => openItem(item)}
+                    eager={index < EAGER_IMAGE_COUNT}
                   />
                 </motion.li>
               );

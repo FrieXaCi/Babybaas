@@ -5,7 +5,7 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 const STORAGE_KEY = "babybaas:favorites";
 const CHANGE_EVENT = "babybaas:favorites-change";
 
-type FavoriteOverrides = Record<string, boolean>;
+export type FavoriteOverrides = Record<string, boolean>;
 
 function readRaw(): string | null {
   try {
@@ -15,14 +15,25 @@ function readRaw(): string | null {
   }
 }
 
-function parse(raw: string | null): FavoriteOverrides {
+/**
+ * Leest de opgeslagen favorieten. Ongeldige JSON, arrays en niet-booleaanse
+ * waarden (bijv. handmatig aangepaste opslag) worden genegeerd.
+ */
+export function parseFavoriteOverrides(raw: string | null): FavoriteOverrides {
   if (!raw) return {};
+  let value: unknown;
   try {
-    const value: unknown = JSON.parse(raw);
-    return value && typeof value === "object" ? (value as FavoriteOverrides) : {};
+    value = JSON.parse(raw);
   } catch {
     return {};
   }
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, boolean] => typeof entry[1] === "boolean",
+    ),
+  );
 }
 
 function subscribe(onChange: () => void) {
@@ -40,7 +51,7 @@ function subscribe(onChange: () => void) {
  */
 export function useFavorites() {
   const raw = useSyncExternalStore(subscribe, readRaw, () => null);
-  const overrides = useMemo(() => parse(raw), [raw]);
+  const overrides = useMemo(() => parseFavoriteOverrides(raw), [raw]);
 
   const isFavorite = useCallback(
     (id: string, fallback: boolean) => overrides[id] ?? fallback,
@@ -48,7 +59,7 @@ export function useFavorites() {
   );
 
   const setFavorite = useCallback((id: string, value: boolean) => {
-    const next = { ...parse(readRaw()), [id]: value };
+    const next = { ...parseFavoriteOverrides(readRaw()), [id]: value };
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
