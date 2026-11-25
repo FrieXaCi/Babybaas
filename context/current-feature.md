@@ -1,24 +1,55 @@
 # Huidige feature
 
-<!-- Naam van de feature -->
+Gebruikersauthenticatie (NextAuth v5 / Auth.js, Credentials)
 
 ## Status
 
 <!-- Niet gestart | In uitvoering | Voltooid -->
 
-Niet gestart
+In uitvoering
 
 ## Doelen
 
 <!-- Doelen en vereisten -->
 
+- Gebruikers kunnen zich registreren met naam, e-mail, wachtwoord en bevestiging van het wachtwoord. Het wachtwoord wordt met bcryptjs gehasht opgeslagen.
+- Gebruikers kunnen inloggen en uitloggen met e-mail en wachtwoord (Credentials provider, JWT-sessies).
+- Alle routes onder `/dashboard/*` zijn beveiligd. Wie niet is ingelogd, gaat automatisch naar de inlogpagina.
+- De TopBar toont de avatar en naam van de ingelogde gebruiker, met een dropdown en een link "Uitloggen".
+- Split auth config pattern: de route-beveiliging importeert geen Prisma.
+
 ## Todo
 
 <!-- checklist van de implementatiestappen -->
 
+- [x] Installeer `next-auth@beta` en `@auth/prisma-adapter`. Zet `bcryptjs` van devDependencies terug naar dependencies (nodig tijdens runtime).
+- [x] Controleer de NextAuth-modellen (Account, Session, VerificationToken) en `User.password` in het schema. Migreer alleen als er iets wijzigt (`npx prisma migrate dev --name add-auth-models`, nooit `db push`). Schema was al compleet, geen migratie nodig.
+- [x] Voeg `AUTH_SECRET` toe aan `.env` (`npx auth secret`).
+- [x] `src/lib/auth.config.ts`: providers, `session: { strategy: "jwt" }`, `pages.signIn`, callbacks (`authorized`, `jwt`, `session`). Credentials met `authorize: () => null`. Geen Prisma-imports.
+- [x] `src/lib/auth.ts`: breidt `authConfig` uit met `PrismaAdapter(prisma)` en een Credentials provider met bcrypt-validatie. Exporteert `handlers`, `auth`, `signIn` en `signOut`.
+- [x] `src/app/api/auth/[...nextauth]/route.ts`: exporteert `GET` en `POST` uit `handlers`.
+- [x] `src/proxy.ts` (Next 16, zie Notities): `NextAuth(authConfig).auth` met een matcher voor `/dashboard/:path*`.
+- [x] Registratie: pagina `/auth/register` en een Server Action met validatie (bestaande e-mail, gelijke wachtwoorden, minimale lengte), bcrypt-hash en daarna inloggen of doorsturen.
+- [x] Inloggen: pagina `/auth/login` met foutmelding bij ongeldige gegevens en een `callbackUrl` die terugleidt naar de oorspronkelijke pagina.
+- [x] TopBar: avatar en naam uit de sessie, met een dropdown met "Uitloggen". Vervang de mock-gebruiker in de sidebar door de sessie, ook in de knop Uitloggen.
+- [x] Types: breid `Session` uit met `user.id`.
+- [x] Tests: gericht op validatie bij registratie en wachtwoordcontrole, daarna `npm test` en `npm run build`.
+- [ ] Handmatig in de browser: registreren, inloggen met een redirect terug, uitloggen via de TopBar en de sidebar.
+
 ## Notities
 
 <!-- Eventuele aanvullende opmerkingen -->
+
+- **Next.js 16.4.6, afwijking van de spec:** `middleware.ts` is deprecated en heet nu `src/proxy.ts`, met de export `proxy`. Proxy draait standaard op de Node.js-runtime, en de `runtime`-optie is daar niet toegestaan. We houden het split config pattern toch aan, zodat de proxy licht blijft en geen Prisma laadt. Zie `node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/proxy.md`.
+- Het schema bevat al `Account`, `Session`, `VerificationToken` en `User.password` (uit de migratie `init_database_schema`). Waarschijnlijk is er geen nieuwe migratie nodig.
+- De demo-gebruiker `demo@babybaas.nl` / `12345678` (uit de seed, bcrypt 12 rondes) kan dienen als testlogin.
+- De homepage verwijst al naar `/auth/register` en `/auth/login`. Die routes geven nu nog een 404.
+- Stijl: retro soft-play (knoppen `retro` / `retro-outline`, shadcn `input`). Een dropdown-component (shadcn `dropdown-menu`) moet mogelijk nog worden toegevoegd.
+- **Cache Components staan aan:** `auth()` en `searchParams` zijn runtime-data. De dashboard-layout geeft de gebruiker als promise door (`DashboardUserProvider`), en `UserMenu` en `UserProfile` lezen die met `use()` binnen `<Suspense>` met een skeleton. De inlogpagina leest `callbackUrl` binnen Suspense.
+- `proxy.ts` moet `export default NextAuth(authConfig).auth` gebruiken. Een gedestructureerde `export const { auth: proxy }` herkent de build niet.
+- `next start` lokaal vereist `AUTH_TRUST_HOST=true` (Auth.js `UntrustedHost`). Bij `next dev` en op Vercel is dat niet nodig. Op een eigen server moet je `AUTH_TRUST_HOST` of `AUTH_URL` zetten.
+- De proxy-matcher dekt ook `/auth/*`: wie al is ingelogd, gaat van de login- of registratiepagina naar `/dashboard`.
+- Referenties: https://authjs.dev/getting-started/installation#edge-compatibility, https://authjs.dev/getting-started/adapters/prisma
 
 ## Geschiedenis
 

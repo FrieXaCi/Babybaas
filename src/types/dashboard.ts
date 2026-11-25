@@ -50,6 +50,8 @@ export interface CategoryFilter {
 
 export interface DashboardUser {
   name: string;
-  familyName: string;
+  email: string;
+  /** Naam van de gezinsruimte; leeg als de gebruiker nog geen gezin heeft. */
+  familyName?: string;
   avatarUrl?: string;
 }

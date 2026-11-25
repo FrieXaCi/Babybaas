@@ -1,11 +1,7 @@
 import { Baby, Camera, Images, Moon, Ruler, Smile } from "lucide-react";
-import type {
-  CollectionItem,
-  ContentItem,
-  DashboardUser,
-} from "@/types/dashboard";
+import type { CollectionItem, ContentItem } from "@/types/dashboard";
 
-// Tijdelijke mock-data tot authenticatie en echte data zijn aangesloten.
+// Tijdelijke mock-data tot de echte data is aangesloten.
 // Vaste instellingen staan in `content-categories.ts` en `navigation.ts`.
 
 export const FAVORITE_ITEMS: CollectionItem[] = [
@@ -55,11 +51,6 @@ export const RECENT_ITEMS: CollectionItem[] = [
     iconClassName: "bg-yellow",
   },
 ];
-
-export const MOCK_USER: DashboardUser = {
-  name: "Demo Gebruiker",
-  familyName: "Familie Demo",
-};
 
 // Tijdelijke content voor het overzicht tot de database is aangesloten.
 
