@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
 import { SearchInput } from "./SearchInput";
+import { UserMenu, UserMenuSkeleton } from "./UserMenu";
 
 export function TopBar() {
   return (
@@ -22,6 +24,10 @@ export function TopBar() {
         <Plus aria-hidden className="size-5" />
         <span className="sr-only sm:not-sr-only">Nieuw item</span>
       </Button>
+
+      <Suspense fallback={<UserMenuSkeleton />}>
+        <UserMenu />
+      </Suspense>
     </header>
   );
 }

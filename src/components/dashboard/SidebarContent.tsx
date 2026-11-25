@@ -1,18 +1,17 @@
 "use client";
 
+import { Suspense, useTransition } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut, Settings } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { logoutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
-import { FAVORITE_ITEMS, MOCK_USER, RECENT_ITEMS } from "@/lib/mock-data";
-import {
-  MAIN_NAVIGATION,
-  getInitials,
-  isActiveRoute,
-} from "@/lib/navigation";
+import { FAVORITE_ITEMS, RECENT_ITEMS } from "@/lib/mock-data";
+import { MAIN_NAVIGATION, isActiveRoute } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { CollectionItem } from "@/types/dashboard";
+import { useDashboardUser } from "./DashboardUserProvider";
+import { UserAvatar } from "./UserAvatar";
 
 type SidebarContentProps = {
   /** Wordt aangeroepen na een klik op een link, bijv. om de drawer te sluiten. */
@@ -35,8 +34,19 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
           onNavigate={onNavigate}
         />
       </div>
-      <UserProfile />
+      <Suspense fallback={<UserProfileSkeleton />}>
+        <UserProfile />
+      </Suspense>
     </div>
+  );
+}
+
+function UserProfileSkeleton() {
+  return (
+    <div
+      aria-hidden
+      className="h-[6.5rem] shrink-0 animate-pulse rounded-[1.25rem] border-2 border-ink bg-cream motion-reduce:animate-none"
+    />
   );
 }
 
@@ -116,21 +126,17 @@ function CollectionSection({ title, items, onNavigate }: CollectionSectionProps)
 }
 
 function UserProfile() {
+  const user = useDashboardUser();
+  const [pending, startTransition] = useTransition();
+
   return (
     <div className="shrink-0 rounded-[1.25rem] border-2 border-ink bg-cream p-3">
       <div className="flex items-center gap-3">
-        <Avatar size="lg" className="border-2 border-ink after:hidden">
-          {MOCK_USER.avatarUrl && (
-            <AvatarImage src={MOCK_USER.avatarUrl} alt="" />
-          )}
-          <AvatarFallback className="bg-teal font-heading text-ink">
-            {getInitials(MOCK_USER.name)}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar user={user} size="lg" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">{MOCK_USER.name}</p>
+          <p className="truncate text-sm font-bold">{user.name}</p>
           <p className="truncate text-xs text-muted-foreground">
-            {MOCK_USER.familyName}
+            {user.familyName ?? user.email}
           </p>
         </div>
       </div>
@@ -139,7 +145,13 @@ function UserProfile() {
           <Settings aria-hidden />
           Instellingen
         </Button>
-        <Button variant="ghost" size="sm" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-full"
+          disabled={pending}
+          onClick={() => startTransition(() => logoutAction())}
+        >
           <LogOut aria-hidden />
           Uitloggen
         </Button>
