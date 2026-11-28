@@ -1,51 +1,24 @@
-# Huidige Feature: Auth Fase 2 — E-mail/wachtwoord en registratie-API
+# Huidige Feature
+
+<!-- Naam van de feature -->
 
 ## Status
 
-In uitvoering
+<!-- Niet gestart | In uitvoering | Voltooid -->
+
+Niet gestart
 
 ## Doelen
 
-- Het `User`-model heeft een `password`-veld (`String?`) voor de bcrypt-hash.
-- `auth.config.ts` blijft edge-compatible met een placeholder `Credentials({ authorize: () => null })`; `auth.ts` overschrijft die met de echte controle (gebruiker op e-mail zoeken, `bcrypt.compare()`).
-- Er is een JSON-endpoint `POST /api/auth/register` dat een account aanmaakt met `name`, `email`, `password` en `confirmPassword`.
-- Het endpoint geeft duidelijke statuscodes: `201` bij succes, `400` bij ongeldige invoer, `409` als het e-mailadres al bestaat, `500` bij een onverwachte fout.
-- De registratieregels zijn op één plek vastgelegd, zodat het formulier `/auth/register` en de API zich hetzelfde gedragen.
-- Een account dat via de API is aangemaakt, kan inloggen en komt op `/dashboard` uit.
+<!-- Doelen en vereisten -->
 
 ## Todo
 
-- [x] Controleer `prisma/schema.prisma`: `User.password String?` bestaat (geen migratie nodig)
-- [x] Controleer de split config: placeholder in `src/lib/auth.config.ts`, echte bcrypt-validatie in `src/lib/auth.ts`
-- [x] Haal de gedeelde registratielogica uit `registerAction` (bestaat-al-check, bcrypt-hash met 12 rondes, `prisma.user.create`) naar een server-only module, bijv. `src/lib/register-user.ts`
-- [x] Laat `registerAction` in `src/app/auth/actions.ts` die gedeelde functie gebruiken (gedrag van het formulier blijft gelijk)
-- [x] Maak `src/app/api/auth/register/route.ts` met `POST`:
-  - [x] JSON veilig inlezen; ongeldige JSON of geen object → `400`
-  - [x] Velden normaliseren (naam trimmen, e-mail met `normalizeEmail`) en valideren met `validateRegisterInput` → `400` met `{ errors }`
-  - [x] Bestaande gebruiker → `409`
-  - [x] Succes → `201` met `{ user: { id, name, email } }` (nooit de hash teruggeven)
-  - [x] Onverwachte fout (bijv. gelijktijdige registratie) → `500` met een algemene melding
-- [x] Controleer dat de statische route `api/auth/register` voorrang krijgt op `api/auth/[...nextauth]`
-- [x] Unit tests voor het inlezen en valideren van de JSON-invoer
-- [x] `npm test`, `npm run lint` en `npm run build` slagen
-- [x] API-test met de curl uit de spec (`test@babybaas.nl`), plus een dubbele registratie (`409`) en niet-gelijke wachtwoorden (`400`)
-- [x] Flow-test: inloggen met het nieuwe account → doorgestuurd naar `/dashboard`
-- [x] Testaccount `test@babybaas.nl` na afloop weer verwijderen uit de ontwikkeldatabase
-
-**Controle-resultaat (2026-11-28):** tests 61/61 groen (9 nieuw voor `parseRegisterJson`), lint en `tsc` zonder fouten, build geslaagd (`/api/auth/register` staat naast `/api/auth/[...nextauth]`). API met `next start` + curl: spec-curl → `201` zonder hash; zelfde e-mail in andere schrijfwijze → `409`; ongelijke wachtwoorden, lege body, ongeldige JSON en een array → `400`; `GET` → `405`. Inloggen met het nieuwe account gaf een sessie en `/dashboard` → `200`; `/api/auth/signin` stuurt door naar `/auth/login`. Testaccount daarna verwijderd. Het registratieformulier `/auth/register` is na de refactor door de gebruiker in de browser getest: aanmaken, dubbel e-mailadres, foute invoer en inloggen werken.
-
-- Een unieke-index-fout (`P2002`) bij een gelijktijdige registratie geeft nu ook "e-mailadres bestaat al" (`409` / veldfout) in plaats van de algemene foutmelding.
+<!-- checklist van de implementatiestappen -->
 
 ## Notities
 
-- Bron: `context/features/auth-spec-files/auth-phase-2-spec.md`.
-- **Al aanwezig uit eerdere features:** `User.password String?` staat in het schema (eerste migratie), `auth.config.ts` heeft de placeholder-provider en `auth.ts` de bcrypt-validatie. Taken 1 en 2 uit de spec zijn dus controle; taak 3 (de API-route) is nieuw.
-- **Geen dubbele logica.** `src/lib/auth-validation.ts` heeft al `validateRegisterInput` (naam max 80, geldig e-mailadres, wachtwoord 8–72 bytes, wachtwoorden gelijk). De API gebruikt die ook, zodat de API niet soepeler is dan het formulier.
-- **Login-flow uit de spec:** de spec zegt "navigeer naar `/api/auth/signin` en kies Credentials". Omdat `pages.signIn` naar `/auth/login` wijst, stuurt NextAuth die URL door naar onze eigen inlogpagina. De flow-test loopt dus via `/auth/login`.
-- **Beveiliging:** het endpoint is publiek (de proxy-matcher dekt `/api` niet, en dat moet zo blijven). Geen wachtwoord of hash in responses of logs. Een limiet op het aantal registraties/inlogpogingen valt buiten deze fase (al genoteerd als review-punt in fase 1).
-- **Soft-play UI:** geen invloed; het is alleen een API. De pagina `/auth/register` behoudt haar uiterlijk en gedrag.
-- **Prisma:** geen schemawijziging verwacht. Mocht het `password`-veld toch ontbreken, dan via `npx prisma migrate dev --name add_user_password` (nooit `db push`).
-- Referentie: https://authjs.dev/getting-started/authentication/credentials
+<!-- Eventuele aanvullende opmerkingen -->
 
 ## Geschiedenis
 
@@ -60,3 +33,4 @@ In uitvoering
 - **2026-11-22 — Homepage & Authenticatie Setup (Fase 1)**: De publieke homepage `src/app/page.tsx` (Server Component) in retro soft-play stijl: een gele header met logo, `Hero` (sticker "Privé", titel, subtitel over slaap en groei zonder voeding, CTA's `Aanmelden` → `/auth/register` en `Inloggen` → `/auth/login`) en `FeatureGrid` (Groeidagboek, Slaap & Groei, Veilig Delen) in `src/components/home/`, plus een disclaimer over medisch advies. De door de gebruiker goedgekeurde hero `public/images/hero-babybaas.png` (1024×1024, retro BabyBaas-stijl) laadt via `next/image` met blur-placeholder, `loading="eager"` en `fetchPriority="high"`. Nieuw in `button.tsx`: de varianten `retro` en `retro-outline` en de maat `xl`, met een zichtbare `ink`-focusring en `motion-reduce`-ondersteuning. De auth-routes bestaan nog niet en geven een 404.
 - **2026-11-25 — Gebruikersauthenticatie (NextAuth v5, Credentials)**: `next-auth@5.0.0-beta.32` met `@auth/prisma-adapter`, JWT-sessies en inloggen met e-mail en wachtwoord. Split config: `src/lib/auth.config.ts` (zonder Prisma, `authorized`/`jwt`/`session`-callbacks, `session.user.id`) en `src/lib/auth.ts` (PrismaAdapter en bcrypt-controle). Next 16: `src/proxy.ts` (in plaats van middleware, `export default NextAuth(authConfig).auth`) beschermt `/dashboard/*` en stuurt ingelogde gebruikers van `/auth/*` naar `/dashboard`. Pagina's `/auth/login` en `/auth/register` met server actions in `src/app/auth/actions.ts`: validatie in `src/lib/auth-validation.ts` (met tests), bcrypt 12 rondes, automatisch inloggen na registratie en een `callbackUrl` die alleen interne paden toelaat. De TopBar heeft een `UserMenu` (avatar, naam, dropdown met Uitloggen) en het sidebar-profiel gebruikt de sessie met de gezinsnaam uit de database. `MOCK_USER` is verwijderd. Vanwege Cache Components geeft de dashboard-layout de gebruiker als promise door (`DashboardUserProvider`, gelezen met `use()` binnen Suspense). Geen migratie nodig; `AUTH_SECRET` staat in `.env`. Voor een lokale `next start` is `AUTH_TRUST_HOST=true` nodig.
 - **2026-11-28 — Auth Setup NextAuth v5 (Fase 1, controle)**: `context/features/auth-spec-files/auth-phase-1-spec.md` gecontroleerd tegen de bestaande auth-opzet; geen codewijzigingen nodig. Split config, alleen Credentials met bcrypt, JWT-sessies, routebescherming van `/dashboard/*` en het getypte `session.user.id` voldoen aan de spec. Besluiten: `src/proxy.ts` in plaats van `middleware.ts` (Next 16), auth-bestanden blijven in `src/lib/`, de eigen pagina's `/auth/login` en `/auth/register` blijven in plaats van de standaard NextAuth-pagina's. Geverifieerd met tests (52/52), lint, build en een handmatige flow (redirect zonder sessie, fout/juist wachtwoord, uitloggen). Review-punten voor later: timingverschil in `authorize` bij een onbekend e-mailadres, geen limiet op inlogpogingen. Ook meegenomen: nieuwe `load`-instructies voor de features-skill en een bijgewerkte `dashboard-phase-2.md`.
+- **2026-11-28 — Auth Fase 2 (E-mail/wachtwoord en registratie-API)**: Volgens `context/features/auth-spec-files/auth-phase-2-spec.md`. `User.password` en de split config (placeholder in `auth.config.ts`, bcrypt-controle in `auth.ts`) bestonden al; geen migratie nodig. Nieuw: `POST /api/auth/register` (`src/app/api/auth/register/route.ts`) met JSON-invoer `name`, `email`, `password`, `confirmPassword` en statuscodes `201` (account zonder hash), `400` (ongeldige JSON/invoer, met foutmelding per veld), `409` (e-mailadres bestaat al) en `500`. De gedeelde, server-only `registerUser` (`src/lib/register-user.ts`: bestaat-al-check, bcrypt 12 rondes, aanmaken; een `P2002`-botsing telt als "bestaat al") wordt door de API en `registerAction` gebruikt. `parseRegisterJson` in `auth-validation.ts` normaliseert de JSON zoals het formulier, en de foutteksten staan daar centraal. Geverifieerd met tests (61/61), lint, `tsc`, build, curl-tests tegen `next start` en een browsertest van het formulier door de gebruiker. `/api/auth/signin` stuurt door naar de eigen pagina `/auth/login`. Nog open: geen limiet op het aantal registraties of inlogpogingen.
