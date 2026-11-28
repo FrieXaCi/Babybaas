@@ -1,50 +1,24 @@
-# Huidige Feature: Auth Fase 3 — Inlog-, registratie-UI en gebruikersmenu
+# Huidige Feature
+
+<!-- Naam van de feature -->
 
 ## Status
 
-In uitvoering
+<!-- Niet gestart | In uitvoering | Voltooid -->
+
+Niet gestart
 
 ## Doelen
 
-- `/auth/login` en `/auth/register` tonen de eigen soft-play UI (afgeronde kaart, retro-schaduw, warm palet) in een aparte auth-layout zonder dashboard-onderdelen.
-- **Inloggen:** e-mail en wachtwoord worden in de browser gecontroleerd vóór het versturen; bij onjuiste gegevens verschijnt een duidelijke foutmelding; er is een link naar registreren.
-- **Registreren:** naam, e-mail, wachtwoord en bevestiging worden in de browser gecontroleerd (zelfde regels als de server: e-mailformaat, wachtwoorden gelijk, lengte). Na succes word je automatisch ingelogd en kom je op `/dashboard` (besluit: huidige flow behouden).
-- **Sidebar-gebruikerssectie:** toont de naam van de ingelogde gebruiker; een klik op avatar/naam opent een menu naar boven met "Profiel" (→ `/dashboard/profiel`) en "Uitloggen". Uitloggen beëindigt de sessie.
-- **`UserAvatar`** is herbruikbaar: toont de afbeelding als die er is, anders initialen ("Baby Baas" → "BB"), met een nette terugval bij een lege naam.
-- Er is een beschermde placeholder-pagina `/dashboard/profiel`.
+<!-- Doelen en vereisten -->
 
 ## Todo
 
-- [x] Controleer de auth-layout (`src/app/auth/layout.tsx`): geen sidebar/top bar/bottom nav, soft-play kaart; geen harde zwarte kleuren in auth- en sidebar-componenten (`ink` is warm donkerbruin `#2b1d14`)
-- [x] Client-side validatie in `LoginForm`: e-mail verplicht en geldig formaat, wachtwoord verplicht; fouten per veld tonen en focus op het eerste foute veld; niet versturen bij fouten
-- [x] Gedeelde helper voor de login-check in `src/lib/auth-validation.ts` (`readLoginInput`, `validateLoginInput`) met unit tests; `loginAction` gebruikt dezelfde regels
-- [x] Client-side validatie in `RegisterForm` met de bestaande `validateRegisterInput`; fouten per veld, focus op het eerste foute veld; serverfouten (bijv. e-mail bestaat al) blijven werken
-- [x] Velden na een client-fout niet leegmaken; foutmelding verdwijnt zodra het veld is aangepast (hook `useFormErrors` in `src/components/auth/use-form-errors.ts`)
-- [x] Controleer de link "Nog geen account?" op de inlogpagina en "Al een account?" op de registratiepagina
-- [x] `UserAvatar` herbruikbaar gemaakt: `src/components/user/UserAvatar.tsx`, props `name`/`image`, icoon `UserRound` bij een lege naam; oude `dashboard/UserAvatar.tsx` verwijderd
-- [x] Unit tests voor `getInitials` (bestonden al in `navigation.test.ts`: twee woorden, meerdere woorden, extra spaties, lege naam)
-- [x] Sidebar `UserProfile` omgebouwd: de hele kaart (avatar, naam, gezin, chevron) is de `DropdownMenuTrigger`, menu opent naar boven met "Profiel" en "Uitloggen"; de knoppen Instellingen/Uitloggen zijn vervallen
-- [x] Mobiele drawer: na "Profiel" sluit de drawer (`onNavigate`)
-- [x] Placeholder-pagina `src/app/dashboard/profiel/page.tsx` met `PlaceholderPage`; beschermd door de proxy
-- [x] Toegankelijkheid: zichtbare focusring, `aria-label` op beide menu-triggers, foutmeldingen en hint gekoppeld via `aria-describedby`/`aria-invalid`
-- [x] `npm test`, `npm run lint` en `npm run build` slagen
-- [x] Handmatige test volgens het testplan (door de gebruiker in de browser): custom UI, validatie, inloggen → `/dashboard`, sidebar- en top bar-menu, Uitloggen, registreren
-
-**Controle-resultaat (2026-11-28):** tests 67/67 groen (6 nieuw voor `readLoginInput`/`validateLoginInput`), lint en `tsc` zonder fouten, build geslaagd (`/dashboard/profiel` erbij). Curl: `/dashboard/profiel` zonder sessie → 307 naar `/auth/login?callbackUrl=…`, met sessie → 200; `/auth/login` toont de eigen UI. De gebruiker heeft alle stappen in de browser getest. Tijdens het testen bleek de database leeg (gebruikers per ongeluk verwijderd); hersteld met `npm run db:seed`.
-
-**Extra:** `DropdownMenuLinkItem` toegevoegd aan `src/components/ui/dropdown-menu.tsx` (Base UI `Menu.LinkItem` met Next `Link`); top bar en sidebar delen `AccountMenuItems` (`src/components/user/`); `AuthField` kreeg een optionele `hint` (wachtwoordeis bij registreren).
+<!-- checklist van de implementatiestappen -->
 
 ## Notities
 
-- Bron: `context/features/auth-spec-files/auth-phase-3-spec.md`.
-- **Al aanwezig:** auth-layout `src/app/auth/layout.tsx` (gele header met logo, `paper`-kaart met `shadow-retro-lg`), `LoginForm`/`RegisterForm` met server actions en serverfouten per veld, `AuthField`, `FormAlert`, `UserAvatar` met `getInitials`, een `UserMenu`-dropdown met Uitloggen in de top bar, en het sidebar-profiel met de knoppen Instellingen en Uitloggen. Deze fase vult aan en bouwt om; er komt geen nieuwe auth-logica bij.
-- **Besluit registratie:** de huidige server action blijft (automatisch inloggen → `/dashboard`). De spec vroeg om `fetch` naar `/api/auth/register` en een redirect naar inloggen; dat is bewust niet overgenomen (één stap minder, werkt ook zonder JavaScript). De API blijft bestaan voor andere clients.
-- **Besluit avatar-klik:** de spec vroeg zowel "naar `/profile`" als "menu bij klik". Gekozen: een menu met "Profiel" en "Uitloggen". De profielpagina komt op `/dashboard/profiel`, zodat ze de dashboard-layout en de proxy-bescherming krijgt.
-- **`useSession` vs. `auth()`:** de spec noemt `useSession` voor client-checks. Het dashboard krijgt de gebruiker al server-side via `auth()` en `DashboardUserProvider` (promise + `use()` binnen Suspense, nodig voor Cache Components). Een `SessionProvider` toevoegen zou een extra `/api/auth/session`-verzoek per pagina geven zonder winst; dat doen we alleen als een client-component echt live sessiestatus nodig heeft.
-- **Client-side validatie** is een gemak voor de gebruiker; de server blijft altijd valideren. Gebruik dezelfde functies uit `auth-validation.ts` (puur, geen server-imports, dus veilig in de browser).
-- **Soft-play UI:** wel invloed. Gebruik de bestaande tokens (`ink`, `cream`, `paper`, `orange`, `teal`, `yellow`), `shadow-retro-*`, ronde vormen (`rounded-full`/`rounded-[1.25rem]`), Lilita One voor koppen en Nunito voor tekst. Geen `black`/`#000`. Respecteer `motion-reduce`.
-- **Prisma:** geen schemawijziging nodig. `User.image` bestaat al voor de avatar-afbeelding.
-- **De top bar** heeft al een `UserMenu`; na deze fase gebruiken top bar en sidebar dezelfde `UserAvatar`. Overweeg de menu-items (Profiel, Uitloggen) te delen, zodat beide menu's gelijk blijven.
+<!-- Eventuele aanvullende opmerkingen -->
 
 ## Geschiedenis
 
@@ -60,3 +34,4 @@ In uitvoering
 - **2026-11-25 — Gebruikersauthenticatie (NextAuth v5, Credentials)**: `next-auth@5.0.0-beta.32` met `@auth/prisma-adapter`, JWT-sessies en inloggen met e-mail en wachtwoord. Split config: `src/lib/auth.config.ts` (zonder Prisma, `authorized`/`jwt`/`session`-callbacks, `session.user.id`) en `src/lib/auth.ts` (PrismaAdapter en bcrypt-controle). Next 16: `src/proxy.ts` (in plaats van middleware, `export default NextAuth(authConfig).auth`) beschermt `/dashboard/*` en stuurt ingelogde gebruikers van `/auth/*` naar `/dashboard`. Pagina's `/auth/login` en `/auth/register` met server actions in `src/app/auth/actions.ts`: validatie in `src/lib/auth-validation.ts` (met tests), bcrypt 12 rondes, automatisch inloggen na registratie en een `callbackUrl` die alleen interne paden toelaat. De TopBar heeft een `UserMenu` (avatar, naam, dropdown met Uitloggen) en het sidebar-profiel gebruikt de sessie met de gezinsnaam uit de database. `MOCK_USER` is verwijderd. Vanwege Cache Components geeft de dashboard-layout de gebruiker als promise door (`DashboardUserProvider`, gelezen met `use()` binnen Suspense). Geen migratie nodig; `AUTH_SECRET` staat in `.env`. Voor een lokale `next start` is `AUTH_TRUST_HOST=true` nodig.
 - **2026-11-28 — Auth Setup NextAuth v5 (Fase 1, controle)**: `context/features/auth-spec-files/auth-phase-1-spec.md` gecontroleerd tegen de bestaande auth-opzet; geen codewijzigingen nodig. Split config, alleen Credentials met bcrypt, JWT-sessies, routebescherming van `/dashboard/*` en het getypte `session.user.id` voldoen aan de spec. Besluiten: `src/proxy.ts` in plaats van `middleware.ts` (Next 16), auth-bestanden blijven in `src/lib/`, de eigen pagina's `/auth/login` en `/auth/register` blijven in plaats van de standaard NextAuth-pagina's. Geverifieerd met tests (52/52), lint, build en een handmatige flow (redirect zonder sessie, fout/juist wachtwoord, uitloggen). Review-punten voor later: timingverschil in `authorize` bij een onbekend e-mailadres, geen limiet op inlogpogingen. Ook meegenomen: nieuwe `load`-instructies voor de features-skill en een bijgewerkte `dashboard-phase-2.md`.
 - **2026-11-28 — Auth Fase 2 (E-mail/wachtwoord en registratie-API)**: Volgens `context/features/auth-spec-files/auth-phase-2-spec.md`. `User.password` en de split config (placeholder in `auth.config.ts`, bcrypt-controle in `auth.ts`) bestonden al; geen migratie nodig. Nieuw: `POST /api/auth/register` (`src/app/api/auth/register/route.ts`) met JSON-invoer `name`, `email`, `password`, `confirmPassword` en statuscodes `201` (account zonder hash), `400` (ongeldige JSON/invoer, met foutmelding per veld), `409` (e-mailadres bestaat al) en `500`. De gedeelde, server-only `registerUser` (`src/lib/register-user.ts`: bestaat-al-check, bcrypt 12 rondes, aanmaken; een `P2002`-botsing telt als "bestaat al") wordt door de API en `registerAction` gebruikt. `parseRegisterJson` in `auth-validation.ts` normaliseert de JSON zoals het formulier, en de foutteksten staan daar centraal. Geverifieerd met tests (61/61), lint, `tsc`, build, curl-tests tegen `next start` en een browsertest van het formulier door de gebruiker. `/api/auth/signin` stuurt door naar de eigen pagina `/auth/login`. Nog open: geen limiet op het aantal registraties of inlogpogingen.
+- **2026-11-28 — Auth Fase 3 (Inlog-, registratie-UI en gebruikersmenu)**: Volgens `context/features/auth-spec-files/auth-phase-3-spec.md`. De auth-layout en soft-play-pagina's bestonden al. Nieuw: controle in de browser voor inloggen en registreren via de hook `useFormErrors` (`src/components/auth/use-form-errors.ts`): niet versturen bij fouten, fout per veld, focus op het eerste foute veld, melding verdwijnt bij aanpassen; de server blijft valideren. Gedeelde regels `readLoginInput`/`validateLoginInput` in `auth-validation.ts` (ook gebruikt door `loginAction`, met tests). Het sidebar-profiel is één menu-trigger die naar boven opent met "Profiel" (→ nieuwe placeholder `/dashboard/profiel`) en "Uitloggen"; de knoppen Instellingen/Uitloggen zijn vervallen. Top bar en sidebar delen `AccountMenuItems`; herbruikbare `UserAvatar` in `src/components/user/` (foto, initialen, icoon bij lege naam); `DropdownMenuLinkItem` (Base UI `Menu.LinkItem`) toegevoegd; `AuthField` kreeg een optionele `hint`. Besluiten: registreren blijft een server action met automatisch inloggen (niet via `fetch` naar de API); geen `SessionProvider`/`useSession`, het dashboard gebruikt `auth()` via `DashboardUserProvider`; profielpagina op `/dashboard/profiel` in plaats van `/profile`. Geverifieerd met tests (67/67), lint, `tsc`, build, curl en een browsertest door de gebruiker. Tijdens het testen bleek de database leeg (gebruikers per ongeluk verwijderd); hersteld met `npm run db:seed`.
