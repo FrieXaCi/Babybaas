@@ -1,4 +1,4 @@
-# Current Feature
+# Huidige Feature
 
 <!-- Naam van de feature -->
 
