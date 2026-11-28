@@ -2,6 +2,10 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 72; // bcrypt gebruikt maximaal 72 bytes
 export const NAME_MAX_LENGTH = 80;
 
+export const EMAIL_TAKEN_MESSAGE = "Er bestaat al een account met dit e-mailadres.";
+export const REGISTER_FAILED_MESSAGE =
+  "Account aanmaken lukt nu niet. Probeer het opnieuw.";
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type RegisterField = "name" | "email" | "password" | "confirmPassword";
@@ -14,18 +18,38 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export function readRegisterInput(formData: FormData): RegisterInput {
-  const read = (key: RegisterField) => {
-    const value = formData.get(key);
+/**
+ * Zet ruwe waarden om naar `RegisterInput`. Alles wat geen string is, wordt
+ * een lege string, zodat `validateRegisterInput` het als ontbrekend meldt.
+ */
+function toRegisterInput(read: (key: RegisterField) => unknown): RegisterInput {
+  const text = (key: RegisterField) => {
+    const value = read(key);
     return typeof value === "string" ? value : "";
   };
 
   return {
-    name: read("name").trim(),
-    email: normalizeEmail(read("email")),
-    password: read("password"),
-    confirmPassword: read("confirmPassword"),
+    name: text("name").trim(),
+    email: normalizeEmail(text("email")),
+    password: text("password"),
+    confirmPassword: text("confirmPassword"),
   };
+}
+
+export function readRegisterInput(formData: FormData): RegisterInput {
+  return toRegisterInput((key) => formData.get(key));
+}
+
+/**
+ * Leest de JSON-body van `POST /api/auth/register`. Geeft `null` als de body
+ * geen gewoon object is (bijv. een array, string of `null`).
+ */
+export function parseRegisterJson(body: unknown): RegisterInput | null {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    return null;
+  }
+  const record = body as Record<string, unknown>;
+  return toRegisterInput((key) => record[key]);
 }
 
 export function validateRegisterInput(input: RegisterInput): RegisterErrors {
