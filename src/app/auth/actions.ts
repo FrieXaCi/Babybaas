@@ -1,18 +1,17 @@
 "use server";
 
-import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/lib/auth";
 import {
+  EMAIL_TAKEN_MESSAGE,
   normalizeEmail,
   readRegisterInput,
+  REGISTER_FAILED_MESSAGE,
   safeCallbackUrl,
   validateRegisterInput,
   type RegisterErrors,
 } from "@/lib/auth-validation";
-import { prisma } from "@/lib/prisma";
-
-const BCRYPT_ROUNDS = 12;
+import { registerUser } from "@/lib/register-user";
 
 export type LoginState = { error?: string; email?: string };
 
@@ -69,29 +68,11 @@ export async function registerAction(
     return { errors, values };
   }
 
-  const existing = await prisma.user.findUnique({
-    where: { email: input.email },
-    select: { id: true },
-  });
-  if (existing) {
-    return {
-      errors: { email: "Er bestaat al een account met dit e-mailadres." },
-      values,
-    };
-  }
-
-  const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
-
-  try {
-    await prisma.user.create({
-      data: { name: input.name, email: input.email, password: passwordHash },
-    });
-  } catch {
-    // Bijv. een gelijktijdige registratie met hetzelfde e-mailadres.
-    return {
-      formError: "Account aanmaken lukt nu niet. Probeer het opnieuw.",
-      values,
-    };
+  const result = await registerUser(input);
+  if (!result.ok) {
+    return result.reason === "email-taken"
+      ? { errors: { email: EMAIL_TAKEN_MESSAGE }, values }
+      : { formError: REGISTER_FAILED_MESSAGE, values };
   }
 
   try {

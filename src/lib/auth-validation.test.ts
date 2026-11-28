@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   PASSWORD_MAX_LENGTH,
   normalizeEmail,
+  parseRegisterJson,
   readRegisterInput,
   safeCallbackUrl,
   validateRegisterInput,
@@ -44,6 +45,48 @@ describe("readRegisterInput", () => {
       password: "",
       confirmPassword: "",
     });
+  });
+});
+
+describe("parseRegisterJson", () => {
+  it("leest en normaliseert een JSON-object", () => {
+    expect(
+      parseRegisterJson({
+        name: " Test Gebruiker ",
+        email: "Test@BabyBaas.nl ",
+        password: "VeiligWachtwoord123",
+        confirmPassword: "VeiligWachtwoord123",
+      }),
+    ).toEqual({
+      name: "Test Gebruiker",
+      email: "test@babybaas.nl",
+      password: "VeiligWachtwoord123",
+      confirmPassword: "VeiligWachtwoord123",
+    });
+  });
+
+  it("maakt van niet-string velden lege strings", () => {
+    expect(
+      parseRegisterJson({ name: 42, email: null, password: ["x"], extra: "genegeerd" }),
+    ).toEqual({ name: "", email: "", password: "", confirmPassword: "" });
+  });
+
+  it.each([null, "tekst", 12, true, [], [{ name: "Sanne" }]])(
+    "geeft null voor een body die geen object is: %j",
+    (body) => {
+      expect(parseRegisterJson(body)).toBeNull();
+    },
+  );
+
+  it("levert invoer die validateRegisterInput afkeurt bij ontbrekende velden", () => {
+    const input = parseRegisterJson({});
+    expect(input).not.toBeNull();
+    expect(Object.keys(validateRegisterInput(input!))).toEqual([
+      "name",
+      "email",
+      "password",
+      "confirmPassword",
+    ]);
   });
 });
 
