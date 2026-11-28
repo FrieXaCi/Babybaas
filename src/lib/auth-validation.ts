@@ -82,6 +82,41 @@ export function validateRegisterInput(input: RegisterInput): RegisterErrors {
   return errors;
 }
 
+export type LoginField = "email" | "password";
+
+export type LoginInput = Record<LoginField, string>;
+
+export type LoginErrors = Partial<Record<LoginField, string>>;
+
+export function readLoginInput(formData: FormData): LoginInput {
+  const email = formData.get("email");
+  const password = formData.get("password");
+  return {
+    email: typeof email === "string" ? normalizeEmail(email) : "",
+    password: typeof password === "string" ? password : "",
+  };
+}
+
+/**
+ * Controleert alleen of de velden ingevuld en goed gevormd zijn; of de
+ * combinatie klopt, bepaalt de server.
+ */
+export function validateLoginInput(input: LoginInput): LoginErrors {
+  const errors: LoginErrors = {};
+
+  if (!input.email) {
+    errors.email = "Vul je e-mailadres in.";
+  } else if (!EMAIL_PATTERN.test(input.email)) {
+    errors.email = "Dit e-mailadres klopt niet.";
+  }
+
+  if (!input.password) {
+    errors.password = "Vul je wachtwoord in.";
+  }
+
+  return errors;
+}
+
 /**
  * Laat alleen interne paden toe als terugkeeradres (geen open redirect).
  */

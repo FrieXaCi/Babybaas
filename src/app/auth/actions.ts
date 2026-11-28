@@ -4,10 +4,11 @@ import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/lib/auth";
 import {
   EMAIL_TAKEN_MESSAGE,
-  normalizeEmail,
+  readLoginInput,
   readRegisterInput,
   REGISTER_FAILED_MESSAGE,
   safeCallbackUrl,
+  validateLoginInput,
   validateRegisterInput,
   type RegisterErrors,
 } from "@/lib/auth-validation";
@@ -25,12 +26,11 @@ export async function loginAction(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const rawEmail = formData.get("email");
-  const email = typeof rawEmail === "string" ? normalizeEmail(rawEmail) : "";
-  const password = formData.get("password");
+  const { email, password } = readLoginInput(formData);
 
-  if (!email || typeof password !== "string" || !password) {
-    return { error: "Vul je e-mailadres en wachtwoord in.", email };
+  // Zelfde regels als de controle in de browser (zonder JavaScript komt het hier).
+  if (Object.keys(validateLoginInput({ email, password })).length > 0) {
+    return { error: "Vul een geldig e-mailadres en je wachtwoord in.", email };
   }
 
   try {

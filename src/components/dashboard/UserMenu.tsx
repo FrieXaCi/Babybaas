@@ -1,19 +1,16 @@
 "use client";
 
-import { useTransition } from "react";
-import { LogOut } from "lucide-react";
-import { logoutAction } from "@/app/auth/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AccountMenuItems } from "@/components/user/AccountMenuItems";
+import { UserAvatar } from "@/components/user/UserAvatar";
 import { useDashboardUser } from "./DashboardUserProvider";
-import { UserAvatar } from "./UserAvatar";
 
 export function UserMenuSkeleton() {
   return (
@@ -26,15 +23,14 @@ export function UserMenuSkeleton() {
 
 export function UserMenu() {
   const user = useDashboardUser();
-  const [pending, startTransition] = useTransition();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Account van ${user.name}`}
+        aria-label={`Accountmenu van ${user.name}`}
         className="flex shrink-0 items-center gap-2 rounded-full border-2 border-ink bg-paper py-0.5 pr-0.5 pl-0.5 font-bold shadow-retro-sm outline-none focus-visible:ring-4 focus-visible:ring-ink md:pr-3"
       >
-        <UserAvatar user={user} />
+        <UserAvatar name={user.name} image={user.avatarUrl} />
         <span className="hidden max-w-32 truncate text-sm md:inline">
           {user.name}
         </span>
@@ -54,14 +50,7 @@ export function UserMenu() {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={pending}
-          onClick={() => startTransition(() => logoutAction())}
-          className="rounded-lg px-2 py-2 font-bold"
-        >
-          <LogOut aria-hidden />
-          {pending ? "Bezig met uitloggen…" : "Uitloggen"}
-        </DropdownMenuItem>
+        <AccountMenuItems />
       </DropdownMenuContent>
     </DropdownMenu>
   );

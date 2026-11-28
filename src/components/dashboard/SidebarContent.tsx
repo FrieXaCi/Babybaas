@@ -1,17 +1,21 @@
 "use client";
 
-import { Suspense, useTransition } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Settings } from "lucide-react";
-import { logoutAction } from "@/app/auth/actions";
-import { Button } from "@/components/ui/button";
+import { ChevronUp } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AccountMenuItems } from "@/components/user/AccountMenuItems";
+import { UserAvatar } from "@/components/user/UserAvatar";
 import { FAVORITE_ITEMS, RECENT_ITEMS } from "@/lib/mock-data";
 import { MAIN_NAVIGATION, isActiveRoute } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import type { CollectionItem } from "@/types/dashboard";
 import { useDashboardUser } from "./DashboardUserProvider";
-import { UserAvatar } from "./UserAvatar";
 
 type SidebarContentProps = {
   /** Wordt aangeroepen na een klik op een link, bijv. om de drawer te sluiten. */
@@ -35,7 +39,7 @@ export function SidebarContent({ onNavigate }: SidebarContentProps) {
         />
       </div>
       <Suspense fallback={<UserProfileSkeleton />}>
-        <UserProfile />
+        <UserProfile onNavigate={onNavigate} />
       </Suspense>
     </div>
   );
@@ -45,7 +49,7 @@ function UserProfileSkeleton() {
   return (
     <div
       aria-hidden
-      className="h-[6.5rem] shrink-0 animate-pulse rounded-[1.25rem] border-2 border-ink bg-cream motion-reduce:animate-none"
+      className="h-[4.75rem] shrink-0 animate-pulse rounded-[1.25rem] border-2 border-ink bg-cream motion-reduce:animate-none"
     />
   );
 }
@@ -125,37 +129,36 @@ function CollectionSection({ title, items, onNavigate }: CollectionSectionProps)
   );
 }
 
-function UserProfile() {
+function UserProfile({ onNavigate }: SidebarContentProps) {
   const user = useDashboardUser();
-  const [pending, startTransition] = useTransition();
 
   return (
-    <div className="shrink-0 rounded-[1.25rem] border-2 border-ink bg-cream p-3">
-      <div className="flex items-center gap-3">
-        <UserAvatar user={user} size="lg" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">{user.name}</p>
-          <p className="truncate text-xs text-muted-foreground">
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Accountmenu van ${user.name}`}
+        className="group flex w-full shrink-0 items-center gap-3 rounded-[1.25rem] border-2 border-ink bg-cream p-3 text-left transition-colors outline-none hover:bg-yellow/40 focus-visible:ring-4 focus-visible:ring-ink/40 data-popup-open:bg-yellow/40"
+      >
+        <UserAvatar name={user.name} image={user.avatarUrl} size="lg" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-bold">{user.name}</span>
+          <span className="block truncate text-xs text-muted-foreground">
             {user.familyName ?? user.email}
-          </p>
-        </div>
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-1">
-        <Button variant="ghost" size="sm" className="rounded-full">
-          <Settings aria-hidden />
-          Instellingen
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-full"
-          disabled={pending}
-          onClick={() => startTransition(() => logoutAction())}
-        >
-          <LogOut aria-hidden />
-          Uitloggen
-        </Button>
-      </div>
-    </div>
+          </span>
+        </span>
+        <ChevronUp
+          aria-hidden
+          className="size-4 shrink-0 transition-transform group-data-popup-open:rotate-180 motion-reduce:transition-none"
+        />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        className="rounded-xl border-2 border-ink bg-paper p-1.5 shadow-retro ring-0"
+      >
+        <AccountMenuItems onNavigate={onNavigate} />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

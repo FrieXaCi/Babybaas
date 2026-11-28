@@ -3,8 +3,10 @@ import {
   PASSWORD_MAX_LENGTH,
   normalizeEmail,
   parseRegisterJson,
+  readLoginInput,
   readRegisterInput,
   safeCallbackUrl,
+  validateLoginInput,
   validateRegisterInput,
   type RegisterInput,
 } from "./auth-validation";
@@ -130,6 +132,47 @@ describe("validateRegisterInput", () => {
       confirmPassword: "anders123",
     });
     expect(errors.confirmPassword).toBe("De wachtwoorden zijn niet gelijk.");
+  });
+});
+
+describe("readLoginInput", () => {
+  it("normaliseert het e-mailadres en laat het wachtwoord ongemoeid", () => {
+    const formData = new FormData();
+    formData.set("email", " Demo@BabyBaas.nl ");
+    formData.set("password", " geheim ");
+    expect(readLoginInput(formData)).toEqual({
+      email: "demo@babybaas.nl",
+      password: " geheim ",
+    });
+  });
+
+  it("geeft lege strings voor ontbrekende velden", () => {
+    expect(readLoginInput(new FormData())).toEqual({ email: "", password: "" });
+  });
+});
+
+describe("validateLoginInput", () => {
+  it("accepteert een ingevuld e-mailadres en wachtwoord", () => {
+    expect(
+      validateLoginInput({ email: "demo@babybaas.nl", password: "12345678" }),
+    ).toEqual({});
+  });
+
+  it("vereist beide velden", () => {
+    expect(validateLoginInput({ email: "", password: "" })).toEqual({
+      email: "Vul je e-mailadres in.",
+      password: "Vul je wachtwoord in.",
+    });
+  });
+
+  it("weigert een ongeldig e-mailadres", () => {
+    expect(
+      validateLoginInput({ email: "demo@", password: "x" }).email,
+    ).toBe("Dit e-mailadres klopt niet.");
+  });
+
+  it("stelt geen eisen aan de wachtwoordlengte (dat is de server)", () => {
+    expect(validateLoginInput({ email: "a@b.nl", password: "x" })).toEqual({});
   });
 });
 
