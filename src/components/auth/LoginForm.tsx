@@ -3,18 +3,42 @@
 import { useActionState } from "react";
 import { loginAction, type LoginState } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
+import {
+  readLoginInput,
+  validateLoginInput,
+  type LoginErrors,
+} from "@/lib/auth-validation";
 import { AuthField } from "./AuthField";
 import { FormAlert } from "./FormAlert";
+import { useFormErrors } from "./use-form-errors";
+
+const NO_ERRORS: LoginErrors = {};
+
+function validate(formData: FormData) {
+  return validateLoginInput(readLoginInput(formData));
+}
 
 export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
     loginAction,
     {},
   );
+  const { errors, hasErrors, onSubmit, onChange } = useFormErrors({
+    serverState: state,
+    serverErrors: NO_ERRORS,
+    validate,
+  });
 
   return (
-    <form action={formAction} className="flex flex-col gap-4" noValidate>
-      <FormAlert message={state.error} />
+    <form
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-4"
+      noValidate
+    >
+      {/* Veldfouten gaan voor; de serverfout hoort bij de vorige poging. */}
+      <FormAlert message={hasErrors ? undefined : state.error} />
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
       <AuthField
@@ -24,8 +48,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         autoComplete="email"
         required
         defaultValue={state.email}
-        // Na een fout opnieuw vullen: key forceert een nieuwe defaultValue.
+        // Na een serverfout opnieuw vullen: key forceert een nieuwe defaultValue.
         key={`email-${state.email ?? ""}`}
+        error={errors.email}
       />
       <AuthField
         name="password"
@@ -33,6 +58,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         type="password"
         autoComplete="current-password"
         required
+        error={errors.password}
       />
 
       <Button

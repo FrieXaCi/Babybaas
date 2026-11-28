@@ -3,22 +3,44 @@
 import { useActionState } from "react";
 import { registerAction, type RegisterState } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
-import { PASSWORD_MIN_LENGTH } from "@/lib/auth-validation";
+import {
+  PASSWORD_MIN_LENGTH,
+  readRegisterInput,
+  validateRegisterInput,
+  type RegisterErrors,
+} from "@/lib/auth-validation";
 import { AuthField } from "./AuthField";
 import { FormAlert } from "./FormAlert";
+import { useFormErrors } from "./use-form-errors";
+
+const NO_ERRORS: RegisterErrors = {};
+
+function validate(formData: FormData) {
+  return validateRegisterInput(readRegisterInput(formData));
+}
 
 export function RegisterForm() {
   const [state, formAction, pending] = useActionState<RegisterState, FormData>(
     registerAction,
     {},
   );
-  const errors = state.errors ?? {};
+  const { errors, hasErrors, onSubmit, onChange } = useFormErrors({
+    serverState: state,
+    serverErrors: state.errors ?? NO_ERRORS,
+    validate,
+  });
   // Bij elke nieuwe server-response de velden opnieuw vullen.
   const valuesKey = `${state.values?.name ?? ""}|${state.values?.email ?? ""}`;
 
   return (
-    <form action={formAction} className="flex flex-col gap-4" noValidate>
-      <FormAlert message={state.formError} />
+    <form
+      action={formAction}
+      onSubmit={onSubmit}
+      onChange={onChange}
+      className="flex flex-col gap-4"
+      noValidate
+    >
+      <FormAlert message={hasErrors ? undefined : state.formError} />
 
       <AuthField
         key={`name-${valuesKey}`}
@@ -47,6 +69,7 @@ export function RegisterForm() {
         minLength={PASSWORD_MIN_LENGTH}
         required
         error={errors.password}
+        hint={`Minstens ${PASSWORD_MIN_LENGTH} tekens.`}
       />
       <AuthField
         name="confirmPassword"
