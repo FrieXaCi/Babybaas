@@ -1,24 +1,44 @@
-# Huidige feature
-
-<!-- Naam van de feature -->
+# Huidige Feature: Auth Setup — NextAuth v5 (Credentials Provider, Fase 1)
 
 ## Status
 
-<!-- Niet gestart | In uitvoering | Voltooid -->
-
-Niet gestart
+In uitvoering
 
 ## Doelen
 
-<!-- Doelen en vereisten -->
+- NextAuth v5 (`next-auth@beta`) met `@auth/prisma-adapter` is geïnstalleerd.
+- Split auth config: een edge-compatible config zonder adapter en een volledige config met Prisma adapter.
+- Alleen de Credentials Provider (e-mail/wachtwoord), geen GitHub of andere OAuth-providers.
+- `authorize` valideert gebruikers tegen de database met bcrypt.
+- `session: { strategy: 'jwt' }`.
+- `/dashboard/*` is beveiligd; niet-ingelogde gebruikers worden naar de sign-in pagina gestuurd.
+- Het `Session`-type is uitgebreid met `user.id` (en `user.role` indien nodig).
+- Database-wijzigingen alleen via `npx prisma migrate dev`, nooit `db push`.
 
 ## Todo
 
-<!-- checklist van de implementatiestappen -->
+- [x] Controleer dat `next-auth@beta` (v5) en `@auth/prisma-adapter` in `package.json` staan
+- [x] Controleer `src/lib/auth.config.ts`: edge-compatible (geen Prisma/bcrypt-imports), alleen Credentials, `session: { strategy: 'jwt' }`
+- [x] Controleer `src/lib/auth.ts`: PrismaAdapter, JWT-strategie en een `authorize` die de gebruiker uit de database haalt en het wachtwoord met bcrypt vergelijkt
+- [x] Controleer `src/app/api/auth/[...nextauth]/route.ts`: exporteert `GET` en `POST` uit `handlers`
+- [x] Controleer `src/proxy.ts`: beschermt `/dashboard/*` en stuurt niet-ingelogde gebruikers naar de sign-in pagina (met `callbackUrl`)
+- [x] Controleer `src/types/next-auth.d.ts`: `Session.user.id` is getypt; `role` alleen toevoegen als het nodig is
+- [x] Los gevonden verschillen met de spec op (geen codeverschillen gevonden; alleen de besluiten hieronder)
+- [x] `npm test`, `npm run lint` en `npm run build` slagen
+- [x] Handmatig testen: inloggen met `demo@babybaas.nl`, uitloggen, `/dashboard` zonder sessie → redirect naar inloggen
+
+**Controle-resultaat (2026-11-28):** tests 52/52 groen, lint zonder fouten, build geslaagd. Flow getest met `next start` + curl: `/dashboard` zonder sessie → 307 naar `/auth/login?callbackUrl=…`; fout wachtwoord → `CredentialsSignin`; juist wachtwoord → sessie met `user.id`; `/auth/login` met sessie → `/dashboard`; na uitloggen weer 307 naar inloggen.
 
 ## Notities
 
-<!-- Eventuele aanvullende opmerkingen -->
+- Bron: `context/features/auth-spec-files/auth-phase-1-spec.md`.
+- **Grotendeels al gebouwd.** De feature "Gebruikersauthenticatie" (2026-11-25, zie Geschiedenis) heeft dit al opgezet: `src/lib/auth.config.ts`, `src/lib/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`, `src/proxy.ts` en `src/types/next-auth.d.ts` bestaan. Deze fase is dus vooral controleren en de verschillen oplossen.
+- **Besluit: `proxy.ts` in plaats van `middleware.ts`.** In Next 16 is `middleware` verouderd en hernoemd naar `proxy` (`node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md`). We gebruiken de bestaande `src/proxy.ts`.
+- **Besluit: de bestaande auth-bestanden gebruiken en in `src/lib/` laten.** Dat de spec `src/auth.ts` noemt, is alleen de Auth.js-voorbeeldconventie; de locatie is vrij. In `src/lib/` staan ze bij de andere gedeelde modules (`prisma.ts`, `auth-validation.ts`), en verplaatsen wijzigt alleen imports.
+- **Afwijking: standaardpagina's.** De spec wil de standaard NextAuth-pagina's (geen `pages` in de config). Er zijn al eigen pagina's `/auth/login` en `/auth/register`; die blijven, want de spec bedoelde de standaardpagina's alleen als tijdelijke testoplossing.
+- **Soft-play UI:** geen invloed. Er komen geen nieuwe schermen bij; de bestaande login- en registratiepagina's houden hun retro-stijl.
+- **Prisma:** geen schemawijziging verwacht; de NextAuth-modellen staan al in de eerste migratie. Als `user.role` toch nodig blijkt, voeg het veld toe aan `User` en maak een migratie met `npx prisma migrate dev --name add_user_role` (nooit `db push`).
+- Referenties: https://authjs.dev/getting-started/installation#edge-compatibility, https://authjs.dev/getting-started/adapters/prisma, https://authjs.dev/getting-started/providers/credentials
 
 ## Geschiedenis
 
